@@ -31,17 +31,22 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable()) // Desactivar CSRF (no usamos cookies)
+            .csrf(csrf -> csrf.disable()) 
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/auth/**").permitAll() // PERMITIMOS entrar al Login sin token
-                .requestMatchers("/actuator/**").permitAll() // Salud del sistema pública (opcional)
-                .anyRequest().authenticated() // Todo lo demás requiere token
+                .requestMatchers("/auth/**").permitAll()
+                .requestMatchers("/actuator/**").permitAll()
+                
+                // ✅ SOLUCIÓN: Las reglas de Swagger van AQUÍ DENTRO
+                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                
+                // ⚠️ IMPORTANTE: Esta línea SIEMPRE debe ser la última dentro de 'auth'
+                .anyRequest().authenticated()
             )
             .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // IMPORTANTE: Sin estado
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .authenticationProvider(authenticationProvider())
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class); // Nuestro filtro primero
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

@@ -22,11 +22,16 @@ public class PatientController {
 
     @PostMapping
     public ResponseEntity<PatientResponseDTO> createPatient(@Valid @RequestBody PatientRequestDTO request) {
-        // "admin" es temporal hasta que tengamos el JWT en la Fase 3
-        PatientResponseDTO newPatient = patientService.createPatient(request, "admin_temp");
+        // 1. Sacamos el usuario autenticado del contexto de seguridad (el que viene en el Token)
+        String currentUsername = org.springframework.security.core.context.SecurityContextHolder
+                .getContext().getAuthentication().getName();
+
+        // 2. Se lo pasamos al servicio para que el AuditLog sea real
+        PatientResponseDTO newPatient = patientService.createPatient(request, currentUsername);
+        
         return new ResponseEntity<>(newPatient, HttpStatus.CREATED);
     }
-
+    
     @GetMapping
     public ResponseEntity<List<PatientResponseDTO>> getAllPatients() {
         return ResponseEntity.ok(patientService.getAllPatients());
