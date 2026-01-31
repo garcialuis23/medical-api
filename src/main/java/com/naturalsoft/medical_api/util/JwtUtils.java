@@ -4,6 +4,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -13,30 +14,32 @@ import java.util.function.Function;
 @Component
 public class JwtUtils {
 
-    // Clave secreta para firmar los tokens (debe ser larga y segura)
-    private static final String SECRET_KEY = "secreto_super_seguro_para_la_empresa_medical_api_12345";
+    // CAMBIO IMPORTANTE: Inyectamos el valor desde application.yml
+    @Value("${security.jwt.secret-key}")
+    private String secretKey;
+
+    @Value("${security.jwt.expiration-time}")
+    private long jwtExpiration;
 
     private Key getSigningKey() {
-        return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
+        // Convertimos la clave inyectada a bytes
+        return Keys.hmacShaKeyFor(secretKey.getBytes());
     }
 
-    // 1. Generar Token (Vale por 10 horas)
     public String generateToken(String username) {
         return Jwts.builder()
                 .setSubject(username)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)) 
+                .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration)) 
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    // 2. Validar Token
     public boolean validateToken(String token, String username) {
         final String extractedUsername = extractUsername(token);
         return (extractedUsername.equals(username) && !isTokenExpired(token));
     }
 
-    // 3. Extraer Usuario del Token
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }

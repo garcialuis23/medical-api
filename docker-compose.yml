@@ -1,34 +1,35 @@
 version: '3.8'
 
 services:
-  # 1. LA APP JAVA
   app:
     container_name: medical_api_app
-    build: .  # Construye usando el Dockerfile de la carpeta actual
+    build: .
     ports:
-      - "8080:8081" # Puerto externo 8080 -> interno 8080
+      - "8080:8080" # Recuerda el ajuste del puerto que hicimos antes
     environment:
-      # OJO: Aquí sobrescribimos la config de application.yml
-      # "postgres-db" es el nombre del servicio de abajo 👇
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/medical_db
-      SPRING_DATASOURCE_USERNAME: admin
-      SPRING_DATASOURCE_PASSWORD: adminpassword
-      # Desactivamos seguridad extraña de inicio rápido
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      # VARIABLES DE BASE DE DATOS
+      DB_URL: jdbc:postgresql://postgres-db:5432/medical_db
+      DB_USERNAME: admin
+      DB_PASSWORD: adminpassword_super_seguro
+      
+      # VARIABLE JWT (¡Aquí va la clave real!)
+      # Nota: Debe ser larga (min 32 caracteres) para HS256
+      JWT_SECRET_KEY: esta_es_una_clave_secreta_muy_larga_y_segura_para_produccion_2026
+      
     depends_on:
-      - postgres-db # Espera a que la BD arranque
+      - postgres-db
     restart: always
 
-  # 2. LA BASE DE DATOS (Ya la tenías, solo ajustamos nombre)
   postgres-db:
     image: postgres:15-alpine
     container_name: medical_db
     environment:
       POSTGRES_USER: admin
-      POSTGRES_PASSWORD: adminpassword
+      # Tiene que coincidir con la de arriba 👆
+      POSTGRES_PASSWORD: adminpassword_super_seguro 
       POSTGRES_DB: medical_db
     ports:
-      - "5455:5432" # Mantenemos tu puerto 5455 para acceder desde fuera si quieres
+      - "5455:5432"
     volumes:
       - postgres_data_5455:/var/lib/postgresql/data
 

@@ -2,24 +2,27 @@ spring:
   application:
     name: medical-api
   datasource:
-    url: jdbc:postgresql://localhost:5455/medical_db
-    username: admin
-    password: adminpassword
+    # Ahora lee de variables de entorno (o usa valores por defecto tras los dos puntos si no las encuentra)
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/medical_db}
+    username: ${DB_USERNAME:admin}
+    password: ${DB_PASSWORD:adminpassword}
     driver-class-name: org.postgresql.Driver
   jpa:
-    hibernate:  
+    hibernate:
       ddl-auto: update
     show-sql: true
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-  
 
 management:
   endpoints:
     web:
       exposure:
         include: health, info
-        
-server:
-  port: 8081
+
+# NUEVA SECCIÓN: Configuración personalizada de Seguridad
+security:
+  jwt:
+    secret-key: ${JWT_SECRET_KEY:clave_secreta_por_defecto_para_desarrollo_local_12345}
+    expiration-time: 3600000 # 1 hora
